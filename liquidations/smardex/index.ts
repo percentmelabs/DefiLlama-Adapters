@@ -38,10 +38,6 @@ interface ApiResponse {
   positions: Position[];
 }
 
-if(!process.env.SMARDEX_SUBGRAPH_API_KEY) {
-  throw new Error("Missing SMARDEX_SUBGRAPH_API_KEY environment variable");
-}
-
 const WSTETH_KEY = "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0";
 const API_URL = "https://usdn-public.api.smardex.io/usdn/positions/open";
 const API_KEY = process.env.SMARDEX_SUBGRAPH_API_KEY
@@ -72,7 +68,7 @@ const calculateLiquidationPrice = (position: Position): number => {
 
 const formatPosition = (position: Position): Liq => {
   const owner =
-    position.mainPosition?.lastOwner?.address || '0x0000000000000000000000000000000000000000';
+    position.recipient || '0x0000000000000000000000000000000000000000';
     
   const searchParam = position.history && position.history.length > 0 ? 
     position.history[position.history.length - 1].transactionHash : position.index;
@@ -91,6 +87,10 @@ const formatPosition = (position: Position): Liq => {
 };
 
 const positions = async (): Promise<Liq[]> => {
+    if(!process.env.SMARDEX_SUBGRAPH_API_KEY) {
+      throw new Error("Missing SMARDEX_SUBGRAPH_API_KEY environment variable");
+    }
+
     const positionsData = await fetchOpenPositions();
     
     if (!positionsData || positionsData.length === 0) {
